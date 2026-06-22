@@ -1,33 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Home from "./pages/Home";
+import Game301 from "./pages/Game301";
+import Statistics from "./pages/Statistics";
+import History from "./pages/History";
 
 function App() {
-  const [player1, setPlayer1] = useState(301);
-  const [player2, setPlayer2] = useState(301);
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "dark"
+  );
 
-  const scorePlayer1 = (points) => {
-    setPlayer1(player1 - points);
-  };
-
-  const scorePlayer2 = (points) => {
-    setPlayer2(player2 - points);
-  };
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   return (
-    <div>
-      <h1>Dart Counter</h1>
+    <BrowserRouter>
+      {/* optional: global header */}
+      <div style={{ padding: 10 }}>
+        <button
+          onClick={() =>
+            setTheme(theme === "dark" ? "light" : "dark")
+          }
+        >
+          Switch to {theme === "dark" ? "Light" : "Dark"} Mode
+        </button>
+      </div>
 
-      <h2>Player 1: {player1}</h2>
-
-      <button onClick={() => scorePlayer1(60)}>60</button>
-      <button onClick={() => scorePlayer1(100)}>100</button>
-
-      <hr />
-
-      <h2>Player 2: {player2}</h2>
-
-      <button onClick={() => scorePlayer2(60)}>60</button>
-      <button onClick={() => scorePlayer2(100)}>100</button>
-    </div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/301" element={<Game301 />} />
+        <Route path="/statistics" element={<Statistics />} />
+        <Route path="/history" element={<History />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
