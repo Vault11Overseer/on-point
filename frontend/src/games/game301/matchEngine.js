@@ -1,30 +1,13 @@
-/*
-|--------------------------------------------------------------------------
-| MATCH ENGINE (301)
-|--------------------------------------------------------------------------
-|
-| Handles ALL game rules:
-| - scoring
-| - bust logic
-| - win conditions
-| - leg tracking (future)
-| - set tracking (future)
-|
-| React should NEVER contain rules logic.
-|
-*/
 import {
   calculateTurnScore,
   isBust
 } from "./game301Logic";
 
-import {
-  GAME_301_CONFIG
-} from "./game301Config";
+import { GAME_301_CONFIG } from "./game301Config";
 
 /*
 |--------------------------------------------------------------------------
-| APPLY TURN (WITH HISTORY SNAPSHOT SUPPORT)
+| APPLY TURN (CORE GAME ENGINE)
 |--------------------------------------------------------------------------
 */
 
@@ -38,17 +21,8 @@ export function applyTurn({ state, turn }) {
 
   const player = state[key];
 
-  // -----------------------------
-  // SNAPSHOT (FOR UNDO SYSTEM)
-  // -----------------------------
-
-  const snapshot = {
-    player1: { ...state.player1 },
-    player2: { ...state.player2 },
-    currentPlayer: state.currentPlayer,
-    winner: state.winner,
-    history: state.history
-  };
+  // Save snapshot for undo/history
+  const snapshot = structuredClone(state);
 
   const newHistory = [
     ...state.history,
@@ -61,10 +35,7 @@ export function applyTurn({ state, turn }) {
     }
   ];
 
-  // -----------------------------
-  // BUST CHECK
-  // -----------------------------
-
+  // BUST
   const busted = isBust(
     player.score,
     turnScore,
@@ -76,17 +47,13 @@ export function applyTurn({ state, turn }) {
     return {
       ...state,
       history: newHistory,
-      currentPlayer:
-        state.currentPlayer === 1 ? 2 : 1
+      currentPlayer: state.currentPlayer === 1 ? 2 : 1
     };
   }
 
   const newScore = player.score - turnScore;
 
-  // -----------------------------
-  // WIN CONDITION
-  // -----------------------------
-
+  // WIN
   if (newScore === 0) {
     return {
       ...state,
@@ -100,10 +67,7 @@ export function applyTurn({ state, turn }) {
     };
   }
 
-  // -----------------------------
   // NORMAL TURN
-  // -----------------------------
-
   return {
     ...state,
     history: newHistory,
@@ -111,14 +75,13 @@ export function applyTurn({ state, turn }) {
       ...player,
       score: newScore
     },
-    currentPlayer:
-      state.currentPlayer === 1 ? 2 : 1
+    currentPlayer: state.currentPlayer === 1 ? 2 : 1
   };
 }
 
 /*
 |--------------------------------------------------------------------------
-| UNDO LAST TURN
+| UNDO SYSTEM (FULL STATE RESTORE)
 |--------------------------------------------------------------------------
 */
 
